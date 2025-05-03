@@ -2,14 +2,23 @@
   "name": "weather-sync-backend",
   "version": "1.0.50",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "bun run --watch src/index.ts"
+    "dev": "bun --watch src/app.ts"
   },
   "dependencies": {
-    "elysia": "latest"
+    "@elysiajs/swagger": "^1.2.2",
+    "@paralleldrive/cuid2": "^2.2.2",
+    "dayjs": "^1.11.13",
+    "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.43.1",
+    "elysia": "latest",
+    "pg": "^8.15.6",
+    "zod": "^3.24.3"
   },
   "devDependencies": {
-    "bun-types": "latest"
+    "@types/pg": "^8.11.14",
+    "bun-types": "latest",
+    "drizzle-kit": "^0.31.0",
+    "tsx": "^4.19.3"
   },
   "module": "src/index.js"
 }
