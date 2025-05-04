@@ -1,4 +1,7 @@
-import { ID_LENGTH, subscriptionStatusEnum } from "@/shared/config.schema";
+import {
+  ID_LENGTH,
+  subscriptionStatusEnum,
+} from "@/shared/database/config.schema";
 import { subscriptionPlansSchema } from "@/subscription-plans/domain/subscription-plans.schema";
 import { usersSchema } from "@/users/domain/users.schema";
 import { createId } from "@paralleldrive/cuid2";
