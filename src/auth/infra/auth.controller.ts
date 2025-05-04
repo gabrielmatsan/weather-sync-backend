@@ -4,7 +4,6 @@ import { WrongCredentialsError } from "@/shared/errors/wrong-crendentials-error"
 import { authMiddleware } from "@/shared/infra/auth.middleware";
 import { repositories } from "@/shared/singleton/repositories";
 import Elysia, { t } from "elysia";
-import { set } from "zod";
 import { loginUseCase } from "../application/login.usecase";
 import {
   registerUserRequestSchema,
