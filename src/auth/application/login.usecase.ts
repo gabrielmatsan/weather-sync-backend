@@ -23,13 +23,11 @@ export async function loginUseCase(
     throw new WrongCredentialsError();
   }
 
-  console.log("passei");
   const isPasswordValid = await comparePassword(password, user.password);
 
   if (!isPasswordValid) {
     throw new WrongCredentialsError();
   }
-  console.log("passei 2");
 
   const { password: _, ...userWithoutPassword } = user;
 
