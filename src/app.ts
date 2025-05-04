@@ -1,6 +1,7 @@
-import { env } from "@/shared/env";
+import { env } from "@/shared/env/env";
 import swagger from "@elysiajs/swagger";
 import { Elysia } from "elysia";
+import { routes } from "./app.routes";
 
 const app = new Elysia({
   serve: {
@@ -29,6 +30,7 @@ const app = new Elysia({
       path: "/docs",
     })
   )
+  .use(routes)
   .listen(env.APP_PORT);
 
 export type app = typeof app;
