@@ -31,99 +31,102 @@ export const authMiddleware = new Elysia()
     })
   )
   .use(cookie())
-  .derive({ as: "scoped" }, ({ jwt, cookie: { auth_token }, headers }) => {
-    return {
-      validateToken: async () => {
-        let token: string | undefined = auth_token;
+  .derive(
+    { as: "scoped" },
+    ({ jwt, cookie: { weather_sync_token }, headers }) => {
+      return {
+        validateToken: async () => {
+          let token: string | undefined = weather_sync_token?.value;
 
-        // Também verifica header Authorization
-        if (!token) {
-          const authHeader = headers["authorization"];
-          if (authHeader?.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
+          // Também verifica header Authorization
+          if (!token) {
+            const authHeader = headers["authorization"];
+            if (authHeader?.startsWith("Bearer ")) {
+              token = authHeader.substring(7);
+            }
           }
-        }
 
-        if (env.NODE_ENV === "development") {
-          console.log("DEV: Token:", token);
-        }
-
-        if (!token) {
           if (env.NODE_ENV === "development") {
-            console.log("DEV: No token found");
+            console.log("DEV: Token:", token);
           }
-          throw new UnauthorizedError();
-        }
 
-        try {
-          const payload = (await jwt.verify(token)) as JwtPayload | false;
-
-          if (!payload) {
-            // Remove cookie inválido
-            auth_token.remove();
-
+          if (!token) {
             if (env.NODE_ENV === "development") {
-              console.log("DEV: Invalid token");
+              console.log("DEV: No token found");
+            }
+            throw new UnauthorizedError();
+          }
+
+          try {
+            const payload = (await jwt.verify(token)) as JwtPayload | false;
+
+            if (!payload) {
+              // Remove cookie inválido
+              weather_sync_token.remove();
+
+              if (env.NODE_ENV === "development") {
+                console.log("DEV: Invalid token");
+              }
+
+              throw new UnauthorizedError();
             }
 
+            // Verifica se o usuário ainda existe
+            const user = await repositories.userRepository.getById(
+              payload.userId
+            );
+
+            if (!user) {
+              weather_sync_token.remove();
+              throw new UnauthorizedError();
+            }
+
+            // Remove senha antes de retornar
+            const { password, ...userWithoutPassword } = user;
+
+            return userWithoutPassword;
+          } catch (error) {
+            if (env.NODE_ENV === "development") {
+              console.log("DEV: Token verification failed", error);
+            }
+
+            // Remove cookie inválido
+            weather_sync_token.remove();
+
             throw new UnauthorizedError();
           }
+        },
 
-          // Verifica se o usuário ainda existe
-          const user = await repositories.userRepository.getById(
-            payload.userId
-          );
+        createToken: async (userId: string) => {
+          const user = await repositories.userRepository.getById(userId);
 
           if (!user) {
-            auth_token.remove();
             throw new UnauthorizedError();
           }
 
-          // Remove senha antes de retornar
-          const { password, ...userWithoutPassword } = user;
+          const token = await jwt.sign({
+            userId,
+            role: user.role as "admin" | "user",
+          });
 
-          return userWithoutPassword;
-        } catch (error) {
-          if (env.NODE_ENV === "development") {
-            console.log("DEV: Token verification failed", error);
-          }
+          console.log("Setting cookie with token:", token);
 
-          // Remove cookie inválido
-          auth_token.remove();
+          // Define o cookie usando a API do Elysia
+          weather_sync_token.set({
+            value: token,
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            maxAge: 60 * 60 * 24 * 7, // 7 dias em segundos
+            path: "/",
+          });
 
-          throw new UnauthorizedError();
-        }
-      },
+          return token;
+        },
 
-      createToken: async (userId: string) => {
-        const user = await repositories.userRepository.getById(userId);
-
-        if (!user) {
-          throw new UnauthorizedError();
-        }
-
-        const token = await jwt.sign({
-          userId,
-          role: user.role as "admin" | "user",
-        });
-
-        console.log("Setting cookie with token:", token);
-
-        // Define o cookie usando a API do Elysia
-        auth_token.set({
-          value: token,
-          httpOnly: true,
-          secure: false,
-          sameSite: "lax",
-          maxAge: 7 * 86400, // 7 dias em segundos
-          path: "/",
-        });
-
-        return token;
-      },
-
-      logout: () => {
-        auth_token.remove();
-      },
-    };
-  });
+        logout: () => {
+          weather_sync_token.remove();
+        },
+      };
+    }
+  );
