@@ -1,6 +1,6 @@
 import { EmailAlreadyUsedError } from "@/shared/errors/email-already-used-error";
 import { UnauthorizedError } from "@/shared/errors/unauthorized-error";
-import { WrongCredentialsError } from "@/shared/errors/wrong-crendentials-error";
+import { WrongCredentialsError } from "@/shared/errors/wrong-credentials-error";
 import { authMiddleware } from "@/shared/infra/auth.middleware";
 import { repositories } from "@/shared/singleton/repositories";
 import Elysia, { t } from "elysia";

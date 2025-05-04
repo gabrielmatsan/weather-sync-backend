@@ -1,5 +1,5 @@
 import { EmailAlreadyUsedError } from "@/shared/errors/email-already-used-error";
-import { WrongCredentialsError } from "@/shared/errors/wrong-crendentials-error";
+import { WrongCredentialsError } from "@/shared/errors/wrong-credentials-error";
 import { hashPassword } from "@/shared/infra/password";
 import type { IUsersRepository } from "@/users/domain/users-repository.interface";
 import { UserType } from "@/users/domain/users.type";

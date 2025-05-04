@@ -1,4 +1,4 @@
-import { WrongCredentialsError } from "@/shared/errors/wrong-crendentials-error";
+import { WrongCredentialsError } from "@/shared/errors/wrong-credentials-error";
 import { comparePassword } from "@/shared/infra/password";
 import type { IUsersRepository } from "@/users/domain/users-repository.interface";
 import type { User } from "@/users/domain/users.type";
