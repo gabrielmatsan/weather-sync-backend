@@ -115,7 +115,7 @@ export const authMiddleware = new Elysia()
           weather_sync_token.set({
             value: token,
             httpOnly: true,
-            secure: false,
+            secure: env.NODE_ENV === "production",
             sameSite: "lax",
             maxAge: 60 * 60 * 24 * 7, // 7 dias em segundos
             path: "/",
