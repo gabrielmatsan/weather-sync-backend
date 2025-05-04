@@ -4,6 +4,7 @@ import { WrongCredentialsError } from "@/shared/errors/wrong-crendentials-error"
 import { authMiddleware } from "@/shared/infra/auth.middleware";
 import { repositories } from "@/shared/singleton/repositories";
 import Elysia, { t } from "elysia";
+import { set } from "zod";
 import { loginUseCase } from "../application/login.usecase";
 import {
   registerUserRequestSchema,
@@ -237,6 +238,56 @@ export const AuthController = new Elysia({
             },
           },
         },
+      },
+    }
+  )
+  .post(
+    "/logout",
+    async ({ logout, validateToken, set }) => {
+      try {
+        const user = await validateToken();
+
+        if (!user) {
+          throw new UnauthorizedError();
+        }
+
+        logout();
+
+        set.status = 200;
+        return {
+          status: "success",
+          message: "Logout successful",
+        };
+      } catch (e) {
+        console.error(e);
+        if (e instanceof UnauthorizedError) {
+          set.status = 401;
+          return { status: "failed", message: e.message };
+        }
+
+        set.status = 500;
+        return { status: "failed", message: "Internal server error" };
+      }
+    },
+    {
+      response: {
+        200: t.Object({
+          status: t.String(),
+          message: t.String(),
+        }),
+        401: t.Object({
+          status: t.String(),
+          message: t.String(),
+        }),
+        500: t.Object({
+          status: t.String(),
+          message: t.String(),
+        }),
+      },
+      detail: {
+        tags: ["Auth"],
+        description: "Logout user",
+        summary: "Logout user",
       },
     }
   );
