@@ -1,5 +1,6 @@
+import { favoritePlacesSchema } from "@/favorite-places/domain/favorite-places.schema";
 import { db } from "@/shared/database/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type {
   CreateUserParams,
   IUsersRepository,
@@ -53,5 +54,31 @@ export class UsersRepository implements IUsersRepository {
       .returning();
 
     return user;
+  }
+
+  async getUsersToSendMessage(placeId: number) {
+    const users = await db
+      .select()
+      .from(usersSchema)
+      .innerJoin(
+        favoritePlacesSchema,
+        eq(usersSchema.id, favoritePlacesSchema.userId)
+      )
+      .where(
+        and(
+          eq(favoritePlacesSchema.placeId, placeId),
+          eq(usersSchema.signatureStatus, "active")
+        )
+      );
+
+    if (users.length === 0) {
+      return null;
+    }
+
+    return users.map((user) => ({
+      id: user.users.id,
+      name: user.users.name,
+      phoneNumber: user.users.phoneNumber,
+    }));
   }
 }
