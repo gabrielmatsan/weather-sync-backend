@@ -3,7 +3,7 @@ import {
   notificationsStatusEnum,
   userRoleEnum,
   userSignatureStatusEnum,
-} from "@/shared/config.schema";
+} from "@/shared/database/config.schema";
 import { createId } from "@paralleldrive/cuid2";
 import { pgTable, timestamp, uniqueIndex, varchar } from "drizzle-orm/pg-core";
 

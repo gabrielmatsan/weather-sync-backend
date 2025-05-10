@@ -1,6 +1,6 @@
 import { drizzle, NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { env } from "./env";
+import { env } from "../env/env";
 
 type DbInstanceType = NodePgDatabase<Record<string, never>>;
 

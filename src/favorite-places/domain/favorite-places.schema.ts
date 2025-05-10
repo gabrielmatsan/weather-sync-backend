@@ -1,5 +1,5 @@
 import { placesSchema } from "@/places/domain/places.schema";
-import { ID_LENGTH } from "@/shared/config.schema";
+import { ID_LENGTH } from "@/shared/database/config.schema";
 import { usersSchema } from "@/users/domain/users.schema";
 import { relations } from "drizzle-orm";
 import {
