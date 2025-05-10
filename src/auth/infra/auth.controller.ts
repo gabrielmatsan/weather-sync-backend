@@ -3,6 +3,7 @@ import { UnauthorizedError } from "@/shared/errors/unauthorized-error";
 import { WrongCredentialsError } from "@/shared/errors/wrong-credentials-error";
 import { authMiddleware } from "@/shared/infra/auth.middleware";
 import { repositories } from "@/shared/singleton/repositories";
+import { UserType } from "@/users/domain/users.type";
 import Elysia, { t } from "elysia";
 import { loginUseCase } from "../application/login.usecase";
 import {
@@ -19,12 +20,16 @@ export const AuthController = new Elysia({
     "/register",
     async ({ body, set }) => {
       try {
-        await registerUserUseCase(repositories.userRepository, body);
+        const response = await registerUserUseCase(
+          repositories.userRepository,
+          body
+        );
 
         set.status = 201;
         return {
           status: "success",
           message: "User registered successfully",
+          response: response.user,
         };
       } catch (e) {
         if (e instanceof WrongCredentialsError) {
@@ -46,6 +51,7 @@ export const AuthController = new Elysia({
         201: t.Object({
           status: t.String(),
           message: t.String(),
+          response: UserType,
         }),
         401: t.Object({
           status: t.String(),
