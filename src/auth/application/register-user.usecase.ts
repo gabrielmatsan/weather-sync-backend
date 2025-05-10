@@ -2,23 +2,27 @@ import { EmailAlreadyUsedError } from "@/shared/errors/email-already-used-error"
 import { WrongCredentialsError } from "@/shared/errors/wrong-credentials-error";
 import { hashPassword } from "@/shared/infra/password";
 import type { IUsersRepository } from "@/users/domain/users-repository.interface";
-import { UserType } from "@/users/domain/users.type";
+import { UserType, type User } from "@/users/domain/users.type";
 import { t, type Static } from "elysia";
 
 export const registerUserRequestSchema = t.Intersect([
-  t.Omit(UserType, ["id", "createdAt", "updatedAt", "signatureStatus"]),
+  t.Omit(UserType, ["id", "createdAt", "updatedAt", "signatureStatus", "role"]),
   t.Object({
     // Caso um dia fizer integração com o google, facebook, etc, colocar oauth
-    provider: t.UnionEnum(["credentials"]),
+    provider: t.Optional(t.UnionEnum(["credentials"])),
   }),
 ]);
 
 export type RegisterUserRequest = Static<typeof registerUserRequestSchema>;
 
+interface RegisterUserResponse {
+  user: User;
+}
+
 export async function registerUserUseCase(
   userRepository: IUsersRepository,
   userData: RegisterUserRequest
-) {
+): Promise<RegisterUserResponse> {
   const isUserAlreadyExists = await userRepository.findByEmail(userData.email);
 
   if (isUserAlreadyExists) {
