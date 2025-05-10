@@ -1,7 +1,7 @@
 import Elysia from "elysia";
 
 import { services } from "@/shared/singleton/services";
-import { sendMessageSchema } from "../application/send-message.service";
+import { sendMessageSchema } from "../domain/message.type";
 
 export const MessageController = new Elysia({
   prefix: "/messages",
