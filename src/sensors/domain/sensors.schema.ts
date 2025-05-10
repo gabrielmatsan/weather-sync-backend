@@ -21,6 +21,7 @@ export const sensorsSchema = pgTable("sensors", {
   waterLevel: numeric("water_level", { precision: 10, scale: 6 }).notNull(),
   waterLevelUnit: varchar("water_level_unit", { length: 30 }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  checkedAt: timestamp("checked", { withTimezone: true }),
 });
 
 export const sensorsRelations = relations(sensorsSchema, ({ one }) => ({
