@@ -8,7 +8,7 @@ export const MessageController = new Elysia({
   tags: ["Messages"],
 }) // Enviar mensagem individual
   .post(
-    "/",
+    "/send-floor-warning",
     async ({ body, set }) => {
       try {
         const { to, place, floor } = body;
