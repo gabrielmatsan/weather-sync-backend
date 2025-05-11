@@ -1,4 +1,5 @@
 import { FavoritePlacesRepository } from "@/favorite-places/infra/favorite-places.repository";
+import { SensorsRepository } from "@/sensors/infra/sensors.repository";
 import { UsersRepository } from "@/users/infra/users.repository";
 import { PlaceRepository } from "./../../places/infra/places.repository";
 
@@ -8,9 +9,11 @@ import { PlaceRepository } from "./../../places/infra/places.repository";
 const userRepository = new UsersRepository();
 const placeRepository = new PlaceRepository();
 const favoritePlaceRepository = new FavoritePlacesRepository();
+const sensorRepository = new SensorsRepository();
 
 export const repositories = {
   userRepository,
   placeRepository,
   favoritePlaceRepository,
+  sensorRepository,
 };
