@@ -1,10 +1,12 @@
-import { t } from "elysia";
+import { t, type Static } from "elysia";
 
-export const locationType = t.Object({
+export const placeType = t.Object({
   id: t.Number(),
   name: t.String(),
   latitude: t.Number(),
   longitude: t.Number(),
-  createdAt: t.String(),
-  updatedAt: t.String(),
+  createdAt: t.Date(),
+  updatedAt: t.Date(),
 });
+
+export type Place = Static<typeof placeType>;

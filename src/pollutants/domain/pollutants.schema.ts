@@ -29,7 +29,7 @@ export const pollutantsSchema = pgTable(
   (t) => [
     index("idx_gold_pollutants_created_at").on(t.createdAt),
     index("idx_gold_pollutants_place_id").on(t.placeId),
-    index("idx_gold_pollutants_place_id").on(t.sourceId),
+    index("idx_gold_pollutants_source_id").on(t.sourceId),
   ]
 );
 

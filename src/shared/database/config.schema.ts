@@ -33,3 +33,10 @@ export const subscriptionStatusEnum = pgEnum("subscription_status", [
   "failed",
   "disputed",
 ]);
+
+/**
+ * OTHER DEFINITIONS
+ */
+
+export const MAX_WATER_LEVEL: number = 0.5; // Defina o nível máximo de água desejado
+
