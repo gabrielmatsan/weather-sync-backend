@@ -1,7 +1,7 @@
 import Elysia from "elysia";
 
-import { services } from "@/shared/singleton/services";
-import { sendMessageSchema } from "../domain/message.type";
+import { repositories } from "@/shared/singleton/repositories";
+import { sendFloorWarningMessageUseCase } from "../application/send-floor-warning-message.usecase";
 
 export const MessageController = new Elysia({
   prefix: "/messages",
@@ -9,25 +9,24 @@ export const MessageController = new Elysia({
 }) // Enviar mensagem individual
   .post(
     "/send-floor-warning",
-    async ({ body, set }) => {
+    async ({ set }) => {
       try {
-        const { to, place, floor } = body;
+        await sendFloorWarningMessageUseCase(
+          repositories.sensorRepository,
+          repositories.userRepository,
+          repositories.placeRepository
+        );
 
-        const result =
-          await services.twilionWhatsappService.sendWhatsAppMessage(to, {
-            place,
-            floor,
-          });
+        // const result =
+        //   await services.twilionWhatsappService.sendWhatsAppMessage(to, {
+        //     place,
+        //     floor,
+        //   });
 
         set.status = 201;
         return {
           success: true,
           message: "Message sent successfully",
-          data: {
-            messageId: result.sid,
-            to: result.to,
-            status: result.status,
-          },
         };
       } catch (error) {
         console.error("Error sending message:", error);
@@ -39,7 +38,6 @@ export const MessageController = new Elysia({
       }
     },
     {
-      body: sendMessageSchema,
       detail: {
         summary: "Send flood alert message",
         description: "Send a WhatsApp flood alert to a single recipient",
