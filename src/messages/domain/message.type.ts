@@ -4,7 +4,7 @@ export const sendMessageSchema = t.Object({
   to: t.String({
     minLength: 10,
     maxLength: 15,
-    description: "Phone number with country code (e.g., +5591988772828)",
+    description: "Phone number with country code (e.g., +559188772828)",
   }),
   place: t.String({
     minLength: 1,
