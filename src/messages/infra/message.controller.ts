@@ -1,3 +1,4 @@
+import { cron } from "@elysiajs/cron";
 import Elysia from "elysia";
 
 import { repositories } from "@/shared/singleton/repositories";
@@ -16,12 +17,6 @@ export const MessageController = new Elysia({
           repositories.userRepository,
           repositories.placeRepository
         );
-
-        // const result =
-        //   await services.twilionWhatsappService.sendWhatsAppMessage(to, {
-        //     place,
-        //     floor,
-        //   });
 
         set.status = 201;
         return {
@@ -43,4 +38,44 @@ export const MessageController = new Elysia({
         description: "Send a WhatsApp flood alert to a single recipient",
       },
     }
+  )
+  .use(
+    cron({
+      name: "automated-flood-check",
+      pattern: "0 */15 * * * *", // A cada 15 minutos
+      timezone: "America/Belem",
+      async run() {
+        console.log(
+          `[CRON] Verificando níveis de água em ${new Date().toISOString()}`
+        );
+
+        try {
+          await sendFloorWarningMessageUseCase(
+            repositories.sensorRepository,
+            repositories.userRepository,
+            repositories.placeRepository
+          );
+
+          console.log("[CRON] Verificação de enchentes concluída com sucesso");
+        } catch (error) {
+          console.error(
+            "[CRON] Erro na verificação automática de enchentes:",
+            error
+          );
+        }
+      },
+    })
+  )
+  .use(
+    cron({
+      name: "cron-health-status",
+      pattern: "*/5 * * * * *",
+      timezone: "America/Belem",
+
+      async run() {
+        console.log(
+          `[CRON] Verificando status de saúde em ${new Date().toISOString()}`
+        );
+      },
+    })
   );
