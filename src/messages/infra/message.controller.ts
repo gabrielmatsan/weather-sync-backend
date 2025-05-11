@@ -1,7 +1,8 @@
+import { cron } from "@elysiajs/cron";
 import Elysia from "elysia";
 
-import { services } from "@/shared/singleton/services";
-import { sendMessageSchema } from "../domain/message.type";
+import { repositories } from "@/shared/singleton/repositories";
+import { sendFloorWarningMessageUseCase } from "../application/send-floor-warning-message.usecase";
 
 export const MessageController = new Elysia({
   prefix: "/messages",
@@ -9,25 +10,18 @@ export const MessageController = new Elysia({
 }) // Enviar mensagem individual
   .post(
     "/send-floor-warning",
-    async ({ body, set }) => {
+    async ({ set }) => {
       try {
-        const { to, place, floor } = body;
-
-        const result =
-          await services.twilionWhatsappService.sendWhatsAppMessage(to, {
-            place,
-            floor,
-          });
+        await sendFloorWarningMessageUseCase(
+          repositories.sensorRepository,
+          repositories.userRepository,
+          repositories.placeRepository
+        );
 
         set.status = 201;
         return {
           success: true,
           message: "Message sent successfully",
-          data: {
-            messageId: result.sid,
-            to: result.to,
-            status: result.status,
-          },
         };
       } catch (error) {
         console.error("Error sending message:", error);
@@ -39,10 +33,49 @@ export const MessageController = new Elysia({
       }
     },
     {
-      body: sendMessageSchema,
       detail: {
         summary: "Send flood alert message",
         description: "Send a WhatsApp flood alert to a single recipient",
       },
     }
+  )
+  .use(
+    cron({
+      name: "automated-flood-check",
+      pattern: "0 */15 * * * *", // A cada 15 minutos
+      timezone: "America/Belem",
+      async run() {
+        console.log(
+          `[CRON] Verificando níveis de água em ${new Date().toISOString()}`
+        );
+
+        try {
+          await sendFloorWarningMessageUseCase(
+            repositories.sensorRepository,
+            repositories.userRepository,
+            repositories.placeRepository
+          );
+
+          console.log("[CRON] Verificação de enchentes concluída com sucesso");
+        } catch (error) {
+          console.error(
+            "[CRON] Erro na verificação automática de enchentes:",
+            error
+          );
+        }
+      },
+    })
+  )
+  .use(
+    cron({
+      name: "cron-health-status",
+      pattern: "*/5 * * * * *",
+      timezone: "America/Belem",
+
+      async run() {
+        console.log(
+          `[CRON] Verificando status de saúde em ${new Date().toISOString()}`
+        );
+      },
+    })
   );

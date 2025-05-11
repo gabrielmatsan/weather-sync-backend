@@ -16,10 +16,17 @@ import { MessageController } from "../message.controller";
 describe("Send Floor Warning Message UseCase", () => {
   let app: Elysia;
 
+  // 1. User 1
   let userData: CreateUserParams;
   let user: any;
   let userId: string;
   let tokenData: string | null;
+
+  // 2. User 2
+  // let user2Data: CreateUserParams;
+  // let user2: any;
+  // let user2Id: string;
+  // let user2TokenData: string | null;
 
   let place: any;
   let placeId: number;
@@ -34,7 +41,7 @@ describe("Send Floor Warning Message UseCase", () => {
     //@ts-expect-error
     app = new Elysia().use(MessageController).use(AuthController);
 
-    // 1. Criar um usuário de teste
+    // 1. Criar um usuário de teste 1 e 2
     let password: string = faker.internet.password();
     let hashedPassword: string = await hashPassword(password);
     userData = {
@@ -48,7 +55,20 @@ describe("Send Floor Warning Message UseCase", () => {
     [user] = await db.insert(usersSchema).values(userData).returning();
     userId = user.id;
 
-    // 2. Criar um token de autenticação para o usuário
+    // let password2: string = faker.internet.password();
+    // let hashedPassword2: string = await hashPassword(password2);
+    // user2Data = {
+    //   name: faker.person.fullName(),
+    //   email: faker.internet.email(),
+    //   password: hashedPassword2,
+    //   phoneNumber: "559184192733", // Número pessoal para testes de recebimento de mensagens
+    //   notifications: "yes",
+    // };
+
+    // [user2] = await db.insert(usersSchema).values(user2Data).returning();
+    // user2Id = user2.id;
+
+    // 2. Criar um token de autenticação para o usuário 1 e 2
     const token = await app.handle(
       new Request("http://localhost:8080/auth/login", {
         method: "POST",
@@ -85,6 +105,10 @@ describe("Send Floor Warning Message UseCase", () => {
       userId: userId,
       placeId: placeId,
     });
+    // await db.insert(favoritePlacesSchema).values({
+    //   userId: user2Id,
+    //   placeId: placeId,
+    // });
 
     // 5. Adicionar fonte de dado
     const [dataSource] = await db
@@ -121,6 +145,17 @@ describe("Send Floor Warning Message UseCase", () => {
         );
     }
 
+    // if (user2Id && placeId) {
+    //   await db
+    //     .delete(favoritePlacesSchema)
+    //     .where(
+    //       and(
+    //         eq(favoritePlacesSchema.userId, user2Id),
+    //         eq(favoritePlacesSchema.placeId, placeId)
+    //       )
+    //     );
+    // }
+
     // 2. Deletar dado do sensor do banco de dados no final do teste
     if (sensor && sensorId) {
       await db.delete(sensorsSchema).where(eq(sensorsSchema.id, sensor.id));
@@ -130,6 +165,12 @@ describe("Send Floor Warning Message UseCase", () => {
     if (userData && userId) {
       await db.delete(usersSchema).where(eq(usersSchema.email, userData.email));
     }
+
+    // if (user2Data && user2Id) {
+    //   await db
+    //     .delete(usersSchema)
+    //     .where(eq(usersSchema.email, user2Data.email));
+    // }
 
     // 4. Deletar fonte de dado do banco de dados no final do teste
     if (dataSource && dataSourceId) {
@@ -154,7 +195,6 @@ describe("Send Floor Warning Message UseCase", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Cookie: tokenData,
         },
         body: JSON.stringify({
           to: user.phoneNumber,

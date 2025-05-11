@@ -97,20 +97,6 @@ describe("Add New Favorite Place Usecase", () => {
       await db.delete(placesSchema).where(eq(placesSchema.id, placeId));
     }
 
-    // 4. User rota de logout para deletar o token
-
-    if (!tokenData) {
-      throw new Error("Token data is null");
-    }
-    await app.handle(
-      new Request("http://localhost:8080/auth/logout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Cookie: tokenData,
-        },
-      })
-    );
   });
 
   it("should add a new favorite place successfully", async () => {

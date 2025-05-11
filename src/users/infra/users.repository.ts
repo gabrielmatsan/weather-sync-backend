@@ -61,7 +61,6 @@ export class UsersRepository implements IUsersRepository {
       .where(
         and(
           eq(favoritePlacesSchema.placeId, placeId),
-          eq(usersSchema.signatureStatus, "active"),
           eq(usersSchema.notifications, "yes")
         )
       );
