@@ -10,9 +10,10 @@ import { faker } from "@faker-js/faker";
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { and, eq } from "drizzle-orm";
 import Elysia from "elysia";
-import { UserController } from "../user.controller";
+import { UserController } from "../../../users/infra/user.controller";
+import { FavoritePlaceController } from "../favorite-place.controller";
 
-describe("Get User Favorite Place Usecase", () => {
+describe("Add New Favorite Place Usecase", () => {
   let app: Elysia;
   let userData: CreateUserParams;
   let user: any;
@@ -26,7 +27,7 @@ describe("Get User Favorite Place Usecase", () => {
     app = new Elysia()
       .use(authMiddleware)
       .use(AuthController)
-      .use(UserController);
+      .use(FavoritePlaceController);
 
     // 1. Criar um usuário de teste
     let password: string = faker.internet.password();
@@ -73,12 +74,6 @@ describe("Get User Favorite Place Usecase", () => {
       .returning();
 
     placeId = place.id;
-
-    //4. Adicionar local como favorito
-    await db.insert(favoritePlacesSchema).values({
-      userId: userId,
-      placeId: placeId,
-    });
   });
 
   afterAll(async () => {
@@ -104,13 +99,13 @@ describe("Get User Favorite Place Usecase", () => {
     }
   });
 
-  it("should get a favorite place successfully", async () => {
+  it("should add a new favorite place successfully", async () => {
     if (!tokenData) {
       throw new Error("Token data is null");
     }
     const response = await app.handle(
-      new Request(`http://localhost:8080/users/favorite-place/${userId}`, {
-        method: "GET",
+      new Request("http://localhost:8080/favorite-places/", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Cookie: tokenData,
@@ -124,8 +119,18 @@ describe("Get User Favorite Place Usecase", () => {
     const responseBody = await response.json();
     console.log("Response Body: ", responseBody);
 
-    expect(response.status).toBe(200);
-    expect(responseBody.status).toBe("success");
-    expect(responseBody.data).toBeDefined();
+    const [searchFavoritePlace] = await db
+      .select()
+      .from(favoritePlacesSchema)
+      .where(
+        and(
+          eq(favoritePlacesSchema.userId, userId),
+          eq(favoritePlacesSchema.placeId, placeId)
+        )
+      );
+
+    expect(searchFavoritePlace).toBeDefined();
+    expect(searchFavoritePlace.userId).toBe(userId);
+    expect(response.status).toBe(201);
   });
 });
