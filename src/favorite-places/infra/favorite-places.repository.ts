@@ -59,4 +59,25 @@ export class FavoritePlacesRepository implements IFavoritePlaceRepository {
       )
       .where(eq(favoritePlacesSchema.userId, userId));
   }
+
+  async removeFavoritePlace(
+    userId: string,
+    placeId: number
+  ): Promise<FavoritePlaceRecord | null> {
+    const [removedFavoritePlace] = await db
+      .delete(favoritePlacesSchema)
+      .where(
+        and(
+          eq(favoritePlacesSchema.userId, userId),
+          eq(favoritePlacesSchema.placeId, placeId)
+        )
+      )
+      .returning();
+
+    if (!removedFavoritePlace) {
+      return null;
+    }
+
+    return removedFavoritePlace;
+  }
 }
