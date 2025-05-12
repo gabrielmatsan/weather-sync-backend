@@ -1,18 +1,12 @@
+import { placesSchema } from "@/places/domain/places.schema";
 import { db } from "@/shared/database/db";
 import { and, eq } from "drizzle-orm";
-import type { IFavoritePlaceRepository } from "../domain/favorite-place.interface.repository";
+import type {
+  FavoritePlaceRecord,
+  IFavoritePlaceRepository,
+  UsersFavoritePlaces,
+} from "../domain/favorite-place.interface.repository";
 import { favoritePlacesSchema } from "../domain/favorite-places.schema";
-
-export interface FavoritePlaceRecord {
-  userId: string;
-  placeId: number;
-  createdAt: Date | null;
-}
-
-export interface CreateNewFavoritePlace {
-  userId: string;
-  placeId: number;
-}
 
 export class FavoritePlacesRepository implements IFavoritePlaceRepository {
   async addNewFavoritePlace(
@@ -49,5 +43,20 @@ export class FavoritePlacesRepository implements IFavoritePlaceRepository {
       .limit(1);
 
     return favoritePlace;
+  }
+
+  async getFavoritePlacesByUserId(
+    userId: string
+  ): Promise<UsersFavoritePlaces[]> {
+    return await db
+      .select({
+        name: placesSchema.name,
+      })
+      .from(favoritePlacesSchema)
+      .innerJoin(
+        placesSchema,
+        eq(placesSchema.id, favoritePlacesSchema.placeId)
+      )
+      .where(eq(favoritePlacesSchema.userId, userId));
   }
 }
