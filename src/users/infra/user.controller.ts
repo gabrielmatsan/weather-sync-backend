@@ -1,7 +1,9 @@
+import { UnauthorizedError } from "@/shared/errors/unauthorized-error";
 import { authMiddleware } from "@/shared/infra/auth.middleware";
 import { repositories } from "@/shared/singleton/repositories";
 import Elysia, { t } from "elysia";
 import { addNewFavoritePlaceUseCase } from "../application/add-new-favorite-place.usecase";
+import { getUserFavoritePlaceUseCase } from "../application/get-user-favorite-place.usecase";
 
 export const UserController = new Elysia({
   prefix: "/users",
@@ -58,6 +60,75 @@ export const UserController = new Elysia({
           status: t.String(),
           message: t.String(),
         }),
+      },
+    }
+  )
+  .get(
+    "/favorite-place/:userId",
+    async ({ params, set, validateToken }) => {
+      try {
+        const user = await validateToken();
+
+        const userId = params.userId;
+
+        if (!user) {
+          throw new UnauthorizedError();
+        }
+
+        const response = await getUserFavoritePlaceUseCase(
+          { userId },
+          repositories.favoritePlaceRepository
+        );
+
+        set.status = 200;
+        return {
+          status: "success",
+          data: response,
+        };
+      } catch (error) {
+        if (error instanceof UnauthorizedError) {
+          set.status = 401;
+          return {
+            status: "error",
+            message: error.message,
+          };
+        }
+        console.error("GET /FAVORITE-PLACE/:userId => \n", error);
+
+        set.status = 500;
+        return {
+          status: "error",
+          message: "Internal server error",
+        };
+      }
+    },
+    {
+      params: t.Object({
+        userId: t.String(),
+      }),
+
+      response: {
+        200: t.Object({
+          status: t.String(),
+          data: t.Array(
+            t.Object({
+              name: t.String(),
+            })
+          ),
+        }),
+        401: t.Object({
+          status: t.String(),
+          message: t.String(),
+        }),
+        500: t.Object({
+          status: t.String(),
+          message: t.String(),
+        }),
+      },
+      detail: {
+        tags: ["Users"],
+        description: "Get all favorite places by userId",
+        summary: "Get all favorite places by userId",
       },
     }
   );
