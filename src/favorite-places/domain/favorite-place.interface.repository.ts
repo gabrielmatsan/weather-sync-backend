@@ -9,6 +9,11 @@ export interface IFavoritePlaceRepository {
     placeId: number
   ): Promise<FavoritePlaceRecord>;
   getFavoritePlacesByUserId(userId: string): Promise<UsersFavoritePlaces[]>;
+
+  removeFavoritePlace(
+    userId: string,
+    placeId: number
+  ): Promise<FavoritePlaceRecord | null>;
 }
 
 export interface FavoritePlaceRecord {
