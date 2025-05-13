@@ -10,7 +10,6 @@ import { faker } from "@faker-js/faker";
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { and, eq } from "drizzle-orm";
 import Elysia from "elysia";
-import { UserController } from "../../../users/infra/user.controller";
 import { FavoritePlaceController } from "../favorite-place.controller";
 
 describe("Add New Favorite Place Usecase", () => {
