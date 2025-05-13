@@ -27,7 +27,7 @@ export async function sendFloorWarningMessageUseCase(
     }));
 
   console.log("Critical places:", criticalPlaces);
-  
+
   // Caso não haja sensores com nível crítico, retorna um objeto indicando que não há alertas a serem enviados
   if (criticalPlaces.length <= 0) {
     console.log("Nenhum sensor ultrapassou o nível crítico de água");
@@ -55,14 +55,10 @@ export async function sendFloorWarningMessageUseCase(
     await Promise.allSettled(
       users.map((user) => {
         // Envia a mensagem para cada usuário
-        const response = services.twilionWhatsappService.sendWhatsAppMessage(
-          user.phoneNumber,
-          {
-            place: place.name,
-            floor: criticalPlace.waterLevel.toString(),
-          }
-        );
-        console.log("Response: ", response);
+        services.twilionWhatsappService.sendWhatsAppMessage(user.phoneNumber, {
+          place: place.name,
+          floor: criticalPlace.waterLevel.toString(),
+        });
       })
     );
   }

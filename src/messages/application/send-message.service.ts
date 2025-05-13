@@ -23,6 +23,8 @@ export class TwillioWhatsappService {
       body: message,
     });
 
+    console.log("Message sent:", result);
+
     if (!result) {
       throw new Error("Error sending message");
     }
