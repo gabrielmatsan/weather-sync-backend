@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1746302416795,
-      "tag": "0000_puzzling_silhouette",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1746309344574,
-      "tag": "0001_parched_blonde_phantom",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1746921901682,
-      "tag": "0002_open_gravity",
+      "when": 1747092636163,
+      "tag": "0000_mixed_gabe_jones",
       "breakpoints": true
     }
   ]
