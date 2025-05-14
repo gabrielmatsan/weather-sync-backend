@@ -1,12 +1,12 @@
 {
-  "id": "39417609-ec44-47d0-966f-a6a9e9e6918a",
-  "prevId": "39b3869e-f5e6-4abb-9ace-ba245101f432",
+  "id": "acf17c00-78ed-4253-8620-58225e080ec1",
+  "prevId": "d685ef8f-4f04-4aab-b895-170ba5b320f0",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.air_quality": {
+    "gold.air_quality": {
       "name": "air_quality",
-      "schema": "",
+      "schema": "gold",
       "columns": {
         "id": {
           "name": "id",
@@ -58,6 +58,7 @@
           "name": "air_quality_place_id_places_id_fk",
           "tableFrom": "air_quality",
           "tableTo": "places",
+          "schemaTo": "gold",
           "columnsFrom": [
             "place_id"
           ],
@@ -71,6 +72,7 @@
           "name": "air_quality_source_id_data_source_id_fk",
           "tableFrom": "air_quality",
           "tableTo": "data_source",
+          "schemaTo": "gold",
           "columnsFrom": [
             "source_id"
           ],
@@ -87,9 +89,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.data_source": {
+    "gold.data_source": {
       "name": "data_source",
-      "schema": "",
+      "schema": "gold",
       "columns": {
         "id": {
           "name": "id",
@@ -186,6 +188,7 @@
           "name": "favorite_places_place_id_places_id_fk",
           "tableFrom": "favorite_places",
           "tableTo": "places",
+          "schemaTo": "gold",
           "columnsFrom": [
             "place_id"
           ],
@@ -210,9 +213,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.places": {
+    "gold.places": {
       "name": "places",
-      "schema": "",
+      "schema": "gold",
       "columns": {
         "id": {
           "name": "id",
@@ -260,9 +263,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.pollutants": {
+    "gold.pollutants": {
       "name": "pollutants",
-      "schema": "",
+      "schema": "gold",
       "columns": {
         "id": {
           "name": "id",
@@ -302,24 +305,64 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_gold_pollutants_created_at": {
+          "name": "idx_gold_pollutants_created_at",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_gold_pollutants_place_id": {
+          "name": "idx_gold_pollutants_place_id",
+          "columns": [
+            {
+              "expression": "place_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_gold_pollutants_source_id": {
+          "name": "idx_gold_pollutants_source_id",
+          "columns": [
+            {
+              "expression": "source_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "pollutants_place_id_places_id_fk": {
           "name": "pollutants_place_id_places_id_fk",
           "tableFrom": "pollutants",
           "tableTo": "places",
+          "schemaTo": "gold",
           "columnsFrom": [
             "place_id"
           ],
@@ -333,6 +376,7 @@
           "name": "pollutants_source_id_data_source_id_fk",
           "tableFrom": "pollutants",
           "tableTo": "data_source",
+          "schemaTo": "gold",
           "columnsFrom": [
             "source_id"
           ],
@@ -349,9 +393,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.sensors": {
+    "gold.sensors": {
       "name": "sensors",
-      "schema": "",
+      "schema": "gold",
       "columns": {
         "id": {
           "name": "id",
@@ -389,6 +433,12 @@
           "primaryKey": false,
           "notNull": false,
           "default": "now()"
+        },
+        "checked": {
+          "name": "checked",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -397,6 +447,7 @@
           "name": "sensors_place_id_places_id_fk",
           "tableFrom": "sensors",
           "tableTo": "places",
+          "schemaTo": "gold",
           "columnsFrom": [
             "place_id"
           ],
@@ -410,6 +461,7 @@
           "name": "sensors_source_id_data_source_id_fk",
           "tableFrom": "sensors",
           "tableTo": "data_source",
+          "schemaTo": "gold",
           "columnsFrom": [
             "source_id"
           ],
@@ -687,9 +739,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.weather": {
+    "gold.weather": {
       "name": "weather",
-      "schema": "",
+      "schema": "gold",
       "columns": {
         "id": {
           "name": "id",
@@ -741,24 +793,49 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_gold_weather_created_at": {
+          "name": "idx_gold_weather_created_at",
+          "columns": [
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_gold_weather_place_id": {
+          "name": "idx_gold_weather_place_id",
+          "columns": [
+            {
+              "expression": "place_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "weather_place_id_places_id_fk": {
           "name": "weather_place_id_places_id_fk",
           "tableFrom": "weather",
           "tableTo": "places",
+          "schemaTo": "gold",
           "columnsFrom": [
             "place_id"
           ],
@@ -772,6 +849,7 @@
           "name": "weather_source_id_data_source_id_fk",
           "tableFrom": "weather",
           "tableTo": "data_source",
+          "schemaTo": "gold",
           "columnsFrom": [
             "source_id"
           ],
@@ -830,7 +908,9 @@
       ]
     }
   },
-  "schemas": {},
+  "schemas": {
+    "gold": "gold"
+  },
   "sequences": {},
   "roles": {},
   "policies": {},

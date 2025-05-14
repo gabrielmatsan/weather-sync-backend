@@ -10,7 +10,7 @@ import { faker } from "@faker-js/faker";
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { and, eq } from "drizzle-orm";
 import Elysia from "elysia";
-import { UserController } from "../user.controller";
+import { FavoritePlaceController } from "../favorite-place.controller";
 
 describe("Add New Favorite Place Usecase", () => {
   let app: Elysia;
@@ -26,7 +26,7 @@ describe("Add New Favorite Place Usecase", () => {
     app = new Elysia()
       .use(authMiddleware)
       .use(AuthController)
-      .use(UserController);
+      .use(FavoritePlaceController);
 
     // 1. Criar um usuário de teste
     let password: string = faker.internet.password();
@@ -96,7 +96,6 @@ describe("Add New Favorite Place Usecase", () => {
     if (place && placeId) {
       await db.delete(placesSchema).where(eq(placesSchema.id, placeId));
     }
-
   });
 
   it("should add a new favorite place successfully", async () => {
@@ -104,7 +103,7 @@ describe("Add New Favorite Place Usecase", () => {
       throw new Error("Token data is null");
     }
     const response = await app.handle(
-      new Request("http://localhost:8080/users/favorite-place", {
+      new Request("http://localhost:8080/favorite-places/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
