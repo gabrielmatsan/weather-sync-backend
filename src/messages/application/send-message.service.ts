@@ -15,19 +15,29 @@ export class TwillioWhatsappService {
   }
 
   async sendWhatsAppMessage(to: string, info: floorWarningMessage) {
-    const message = `ATENÇÃO!!!\n Alerta de enchente - Bairro ${info.place} - Nível da água ${info.floor} metros\n\n`;
+    try {
+      const message = `ATENÇÃO!!!\n Alerta de enchente - Bairro ${info.place} - Nível da água ${info.floor} metros\n\n`;
 
-    const result = await this.client.messages.create({
-      from: `whatsapp:${env.TWILIO_PHONE_NUMBER}`,
-      to: `whatsapp:${to}`,
-      body: message,
-    });
+      const result = await this.client.messages.create({
+        from: `whatsapp:${env.TWILIO_PHONE_NUMBER}`,
+        to: `whatsapp:${to}`,
+        body: message,
+        // contentSid: env.TWILIO_TEMPLATE,
+        // contentVariables: JSON.stringify({
+        //   1: info.place,
+        //   2: info.floor,
+        // }),
+      });
 
-    if (!result) {
+      if (!result) {
+        throw new Error("Error sending message");
+      }
+
+      console.log("Message sent successfully", result.sid);
+      return result;
+    } catch (error) {
+      console.error("Error sending message", error);
       throw new Error("Error sending message");
     }
-
-    console.log("Message sent successfully", result.sid);
-    return result;
   }
 }
