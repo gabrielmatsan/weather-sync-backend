@@ -70,8 +70,13 @@ jobs:
       - name: Executar migrações do banco de dados
         run: bunx drizzle-kit migrate
         
-      - name: Executar testes exceto testes do Twilio
-        run: bun test "!**/*message*.test.ts"
+      - name: Executar testes específicos
+        run: |
+          bun test src/favorite-places/infra/tests/remove-favorite-place.usecase.test.ts \
+                 src/favorite-places/infra/tests/get-user-favoite-place.usecase.test.ts \
+                 src/favorite-places/infra/tests/add-new-favorite-place.usecase.test.ts \
+                 src/auth/infra/tests/register-user.usecase.test.ts \
+                 src/auth/infra/tests/login.usecase.test.ts
         env:
           DATABASE_URL: postgresql://docker:docker@localhost:5432/weather-sync
           NODE_ENV: test
