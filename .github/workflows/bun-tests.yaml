@@ -37,7 +37,7 @@ jobs:
           cache: "bun"
           
       - name: Instalar dependências
-        run: "bun ci"
+        run: "bun i"
         
       - name: Configurar variáveis de ambiente para teste
         run: |
