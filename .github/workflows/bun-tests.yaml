@@ -1,5 +1,6 @@
 # Data da última revisão: 15 de Maio de 2025
 name: CI Weather Sync Backend
+
 on:
   pull_request:
     branches: [main, master, dev, development]
@@ -12,11 +13,14 @@ on:
         required: true
         type: boolean
         default: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    
     permissions:
       contents: read
+      
     services:
       postgres:
         image: bitnami/postgresql
@@ -26,87 +30,58 @@ jobs:
           POSTGRESQL_USERNAME: docker
           POSTGRESQL_PASSWORD: docker
           POSTGRESQL_DATABASE: weather-sync
+        # Adicionar healthcheck para garantir que o PostgreSQL esteja pronto
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-          cache: "bun"
+          cache: true
           
       - name: Instalar dependências
-        run: "bun i"
+        run: bun install
         
-      - name: Configurar variáveis de ambiente para teste
+      - name: Criar arquivo .env para teste
         run: |
-          # Verificar se o arquivo .env existe
-          if [ -f ".env" ]; then
-            echo "Arquivo .env encontrado. Garantindo variáveis necessárias para teste..."
-            # Garantir que as variáveis críticas para o teste estejam corretas
-            sed -i 's|^DATABASE_URL=.*|DATABASE_URL=postgresql://docker:docker@localhost:5432/weather-sync|' .env
-            sed -i 's|^NODE_ENV=.*|NODE_ENV=test|' .env
-            sed -i 's|^JWT_SECRET=.*|JWT_SECRET=testing|' .env
-            
-            # Adicionar ou atualizar as variáveis do Twilio
-            grep -q "^TWILIO_ACCOUNT=" .env || echo "TWILIO_ACCOUNT=testing-account" >> .env
-            grep -q "^TWILIO_ACCOUNT_SID=" .env || echo "TWILIO_ACCOUNT_SID=testing-sid" >> .env
-            grep -q "^TWILIO_AUTH_TOKEN=" .env || echo "TWILIO_AUTH_TOKEN=testing-token" >> .env
-            grep -q "^TWILIO_PHONE_NUMBER=" .env || echo "TWILIO_PHONE_NUMBER=+5599999999999" >> .env
-            grep -q "^TWILIO_TEMPLATE=" .env || echo "TWILIO_TEMPLATE=testing-template" >> .env
-            
-            echo "Arquivo .env configurado para ambiente de teste."
-          else
-            echo "Arquivo .env não encontrado. Criando arquivo..."
-            cat > .env << EOL
-            DATABASE_URL=postgresql://docker:docker@localhost:5432/weather-sync
-            NODE_ENV=test
-            JWT_SECRET=testing
-            APP_PORT=8080
-            BASE_URL=http://localhost:8080
-            TWILIO_ACCOUNT=testing-account
-            TWILIO_ACCOUNT_SID=testing-sid
-            TWILIO_AUTH_TOKEN=testing-token
-            TWILIO_PHONE_NUMBER=+5599999999999
-            TWILIO_TEMPLATE=testing-template
-            EOL
-            
-            echo "Arquivo .env básico criado para testes."
-          fi
+          cat > .env << EOF
+          DATABASE_URL=postgresql://docker:docker@localhost:5432/weather-sync
+          NODE_ENV=test
+          JWT_SECRET=testing
+          APP_PORT=8080
+          BASE_URL=http://localhost:8080
+          TWILIO_ACCOUNT=testing-account
+          TWILIO_ACCOUNT_SID=testing-sid
+          TWILIO_AUTH_TOKEN=testing-token
+          TWILIO_PHONE_NUMBER=+5599999999999
+          TWILIO_TEMPLATE=testing-template
+          EOF
+          
+      - name: Aguardar carregamento das variáveis
+        run: |
           echo "Aguardando 7 segundos para garantir o carregamento das variáveis de ambiente..."
           sleep 7
           
       - name: Gerar esquema do banco de dados
-        run: "npx drizzle-kit generate"
-        env:
-          DATABASE_URL: "postgresql://docker:docker@localhost:5432/weather-sync"
-          NODE_ENV: "test"
-          JWT_SECRET: "testing"
-          TWILIO_ACCOUNT: "testing-account"
-          TWILIO_ACCOUNT_SID: "testing-sid"
-          TWILIO_AUTH_TOKEN: "testing-token"
-          TWILIO_PHONE_NUMBER: "+5599999999999"
-          TWILIO_TEMPLATE: "testing-template"
-          
+        run: bunx drizzle-kit generate
+        
       - name: Executar migrações do banco de dados
-        run: "npx drizzle-kit migrate"
-        env:
-          DATABASE_URL: "postgresql://docker:docker@localhost:5432/weather-sync"
-          NODE_ENV: "test"
-          JWT_SECRET: "testing"
-          TWILIO_ACCOUNT: "testing-account"
-          TWILIO_ACCOUNT_SID: "testing-sid"
-          TWILIO_AUTH_TOKEN: "testing-token"
-          TWILIO_PHONE_NUMBER: "+5599999999999"
-          TWILIO_TEMPLATE: "testing-template"
-          
+        run: bunx drizzle-kit migrate
+        
       - name: Executar testes
-        run: "bun test"
+        run: bun test
         env:
-          DATABASE_URL: "postgresql://docker:docker@localhost:5432/weather-sync"
-          NODE_ENV: "test"
-          JWT_SECRET: "testing"
+          DATABASE_URL: postgresql://docker:docker@localhost:5432/weather-sync
+          NODE_ENV: test
+          JWT_SECRET: testing
           TWILIO_ACCOUNT: ${{ secrets.TWILIO_ACCOUNT || 'testing-account' }}
           TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID || 'testing-sid' }}
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN || 'testing-token' }}
