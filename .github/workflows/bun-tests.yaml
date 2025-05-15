@@ -1,30 +1,33 @@
 name: Bun Tests
-
 on:
-    pull_request:
-        branches: [main, master, dev]
-
+  pull_request:
+    branches: [ main, master, dev, development ]
+  push:
+    branches: [ main, master, dev, development ]
 jobs:
-    test:
-        runs-on: ubuntu-latest
-
-        steps:
-            - uses: actions/checkout@v4
-
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v1
-              with:
-                  bun-version: latest
-
-            - name: Install dependencies
-              run: bun install
-
-            - name: Create .env file
-              run: |
-                  echo "# CI Environment Variables" > .env
-                  echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-                  echo "API_KEY=${{ secrets.API_KEY }}" >> .env
-                  # Adicione outras variáveis necessárias aqui
-
-            - name: Run tests
-              run: bun test --env-file .env ./src/**/infra/tests/*.test.ts
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      
+      - name: Install dependencies
+        run: bun install
+      
+      - name: Create .env file
+        run: |
+          echo "# CI Environment Variables" > .env
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          echo "API_KEY=${{ secrets.API_KEY }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
+          echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
+          # Adicione outras variáveis necessárias aqui
+      
+      - name: Run tests
+        run: bun test --env-file .env ./src/**/infra/tests/*.test.ts
