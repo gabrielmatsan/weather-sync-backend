@@ -30,6 +30,12 @@ jobs:
           POSTGRESQL_USERNAME: docker
           POSTGRESQL_PASSWORD: docker
           POSTGRESQL_DATABASE: weather-sync
+        # Adicionar healthcheck para garantir que o PostgreSQL esteja pronto
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
           
     steps:
       - name: Checkout repository
@@ -52,8 +58,8 @@ jobs:
           JWT_SECRET=testing
           APP_PORT=8080
           BASE_URL=http://localhost:8080
-          TWILIO_ACCOUNT=testing-account
-          TWILIO_ACCOUNT_SID=testing-sid
+          TWILIO_ACCOUNT=AC00000000000000000000000000000000
+          TWILIO_ACCOUNT_SID=AC00000000000000000000000000000000
           TWILIO_AUTH_TOKEN=testing-token
           TWILIO_PHONE_NUMBER=+5599999999999
           TWILIO_TEMPLATE=testing-template
@@ -70,14 +76,14 @@ jobs:
       - name: Executar migrações do banco de dados
         run: bunx drizzle-kit migrate
         
-      - name: Executar testes
-        run: bun test
+      - name: Executar testes exceto testes do Twilio
+        run: bun test "!**/*message*.test.ts"
         env:
           DATABASE_URL: postgresql://docker:docker@localhost:5432/weather-sync
           NODE_ENV: test
           JWT_SECRET: testing
-          TWILIO_ACCOUNT: ${{ secrets.TWILIO_ACCOUNT || 'testing-account' }}
-          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID || 'testing-sid' }}
+          TWILIO_ACCOUNT: AC00000000000000000000000000000000
+          TWILIO_ACCOUNT_SID: AC00000000000000000000000000000000
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN || 'testing-token' }}
           TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER || '+5599999999999' }}
           TWILIO_TEMPLATE: ${{ secrets.TWILIO_TEMPLATE || 'testing-template' }}
