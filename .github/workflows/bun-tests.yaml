@@ -1,142 +1,85 @@
 # Data da última revisão: 15 de Maio de 2025
-
 name: CI Weather Sync Backend
-
 on:
-    pull_request:
-        branches: [main, master, dev, development]
-    push:
-        branches: [main, master, dev, development]
-
-    workflow_dispatch:
-        inputs:
-            run_tests:
-                description: "Executar testes manualmente"
-                required: true
-                type: boolean
-                default: true
-
+  pull_request:
+    branches: [main, master, dev, development]
+  push:
+    branches: [main, master, dev, development]
+  workflow_dispatch:
+    inputs:
+      run_tests:
+        description: "Executar testes manualmente"
+        required: true
+        type: boolean
+        default: true
 jobs:
-    test:
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-
-        # Configurar serviço PostgreSQL para testes
-        services:
-            postgres:
-                image: postgres:15
-                env:
-                    POSTGRES_USER: postgres
-                    POSTGRES_PASSWORD: postgres
-                    POSTGRES_DB: test_db
-                ports:
-                    - 5432:5432
-                # Opções para garantir que o PostgreSQL esteja pronto antes de executar os testes
-                options: >-
-                    --health-cmd pg_isready
-                    --health-interval 10s
-                    --health-timeout 5s
-                    --health-retries 5
-
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
-
-            - name: Setup Bun
-              uses: oven-sh/setup-bun@v1
-              with:
-                  bun-version: latest
-
-            - name: Set short git commit SHA
-              id: vars
-              run: |
-                  calculatedSha=$(git rev-parse --short ${{ github.sha }})
-                  echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
-
-            - name: Install dependencies
-              run: bun install
-
-            - name: Verificar PostgreSQL
-              run: |
-                  # Instala cliente PostgreSQL para testar a conexão
-                  apt-get update -y && apt-get install -y postgresql-client
-
-                  # Testa a conexão com o banco de dados
-                  PGPASSWORD=postgres psql -h localhost -U postgres -d test_db -c "SELECT 'Conexão ao PostgreSQL bem-sucedida!' as status;"
-
-            - name: Make envfile
-              uses: SpicyPizza/create-envfile@v2.0
-              with:
-                  envkey_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-                  envkey_NODE_ENV: test
-                  envkey_APP_PORT: ${{ secrets.APP_PORT || '3000' }}
-                  envkey_JWT_SECRET: ${{ secrets.JWT_SECRET || 'test-jwt-secret' }}
-                  envkey_BASE_URL: http://localhost:3000
-
-                  envkey_TWILIO_ACCOUNT: ${{ secrets.TWILIO_ACCOUNT || 'AC00000000000000000000000000000000' }}
-                  envkey_TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID || 'AC00000000000000000000000000000000' }}
-                  envkey_TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN || '0000000000000000000000000000000000' }}
-                  envkey_TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER || '+1234567890' }}
-                  envkey_TWILIO_TEMPLATE: ${{ secrets.TWILIO_TEMPLATE || 'test-template' }}
-
-                  file_name: .env
-                  fail_on_empty: false
-
-            - name: List project structure
-              run: |
-                  echo "=== Estrutura de diretórios ==="
-                  find ./src -type d -not -path "*/\.*" | sort
-
-                  echo "=== Arquivos de teste ==="
-                  find ./src -name "*.test.ts" -o -name "*.spec.ts" | sort
-
-            - name: Initialize database schema
-              run: |
-                  # Se o projeto tiver migrations, execute-as aqui
-                  # Exemplo: bun run migrate
-
-                  # Se não tiver migrations, você pode criar o schema manualmente
-                  echo "Inicializando o banco de dados para testes..."
-
-                  # Verificar se existe um script de migração ou schema
-                  if [ -f "./drizzle/schema.ts" ]; then
-                    echo "Encontrado schema Drizzle, executando migrações..."
-                    bun run db:push || echo "Falha nas migrações, mas continuando..."
-                  elif [ -f "./prisma/schema.prisma" ]; then
-                    echo "Encontrado schema Prisma, executando migrações..."
-                    npx prisma migrate dev --name init || echo "Falha nas migrações, mas continuando..."
-                  elif [ -f "./migrations" ]; then
-                    echo "Encontrada pasta de migrações, executando..."
-                    bun run migrations || echo "Falha nas migrações, mas continuando..."
-                  else
-                    echo "Nenhum schema de banco de dados encontrado automaticamente."
-                    echo "Considere adicionar um passo manual de inicialização de schema se necessário."
-                  fi
-
-            - name: Run tests
-              id: run-tests
-              continue-on-error: true # Permite continuar mesmo se os testes falharem
-              run: |
-                  # Executar testes excluindo o módulo messages que tem problemas com Twilio
-                  find ./src -name "*.test.ts" -not -path "*/messages/*" | xargs -r bun test || true
-
-                  # Capturar o código de saída para usar mais tarde
-                  echo "EXIT_CODE=$?" >> $GITHUB_OUTPUT
-
-            - name: Report test status
-              run: |
-                  echo "Testes concluídos para o commit: ${{ env.COMMIT_SHORT_SHA }}"
-
-                  if [ "${{ steps.run-tests.outputs.EXIT_CODE }}" == "0" ]; then
-                    echo "Status: ✅ Todos os testes passaram com sucesso!"
-                  else
-                    echo "Status: ⚠️ Alguns testes falharam, mas o CI continuou para permitir o andamento do desenvolvimento."
-                    echo "Nota: Os problemas principais identificados são:"
-                    echo "  1. Conexão com o banco de dados PostgreSQL"
-                    echo "  2. Inicialização do serviço Twilio no módulo 'messages'"
-                    echo ""
-                    echo "Recomendações:"
-                    echo "  - Verifique se o schema do banco de dados está sendo inicializado corretamente"
-                    echo "  - Considere usar mocks para serviços externos como Twilio nos testes"
-                  fi
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: bitnami/postgresql
+        ports:
+          - 5432:5432
+        env:
+          POSTGRESQL_USERNAME: docker
+          POSTGRESQL_PASSWORD: docker
+          POSTGRESQL_DATABASE: weather-sync
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+          cache: "bun"
+          
+      - name: Instalar dependências
+        run: "bun ci"
+        
+      - name: Configurar variáveis de ambiente para teste
+        run: |
+          # Verificar se o arquivo .env existe
+          if [ -f ".env" ]; then
+            echo "Arquivo .env encontrado. Garantindo variáveis necessárias para teste..."
+            # Garantir que as variáveis críticas para o teste estejam corretas
+            sed -i 's|^DATABASE_URL=.*|DATABASE_URL=postgresql://docker:docker@localhost:5432/weather-sync|' .env
+            sed -i 's|^NODE_ENV=.*|NODE_ENV=test|' .env
+            sed -i 's|^JWT_SECRET=.*|JWT_SECRET=testing|' .env
+            echo "Arquivo .env configurado para ambiente de teste."
+          else
+            echo "Arquivo .env não encontrado. Criando arquivo..."
+            echo "DATABASE_URL=postgresql://docker:docker@localhost:5432/weather-sync" > .env
+            echo "NODE_ENV=test" >> .env
+            echo "JWT_SECRET=testing" >> .env
+            echo "APP_PORT=8080" >> .env
+            echo "BASE_URL=http://localhost:8080" >> .env
+            # Variáveis Twilio serão fornecidas apenas como variáveis de ambiente no passo de teste
+            echo "Arquivo .env básico criado para testes."
+          fi
+          echo "Aguardando 7 segundos para garantir o carregamento das variáveis de ambiente..."
+          sleep 7
+          
+      - name: Gerar esquema do banco de dados
+        run: "npx drizzle-kit generate"
+        env:
+          DATABASE_URL: "postgresql://docker:docker@localhost:5432/weather-sync"
+          
+      - name: Executar migrações do banco de dados
+        run: "npx drizzle-kit migrate"
+        env:
+          DATABASE_URL: "postgresql://docker:docker@localhost:5432/weather-sync"
+          
+      - name: Executar testes
+        run: "bun test"
+        env:
+          DATABASE_URL: "postgresql://docker:docker@localhost:5432/weather-sync"
+          NODE_ENV: "test"
+          JWT_SECRET: "testing"
+          TWILIO_ACCOUNT: ${{ secrets.TWILIO_ACCOUNT || 'testing-account' }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID || 'testing-sid' }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN || 'testing-token' }}
+          TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER || '+5599999999999' }}
+          TWILIO_TEMPLATE: ${{ secrets.TWILIO_TEMPLATE || 'testing-template' }}
