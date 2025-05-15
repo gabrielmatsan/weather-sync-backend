@@ -23,11 +23,15 @@ jobs:
         run: |
           echo "# CI Environment Variables" > .env
           echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
-          echo "API_KEY=${{ secrets.API_KEY }}" >> .env
+          echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
+          echo "APP_PORT=${{ secrets.APP_PORT }}" >> .env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
           echo "TWILIO_ACCOUNT_SID=${{ secrets.TWILIO_ACCOUNT_SID }}" >> .env
           echo "TWILIO_AUTH_TOKEN=${{ secrets.TWILIO_AUTH_TOKEN }}" >> .env
+          echo "TWILIO_PHONE_NUMBER=${{ secrets.TWILIO_PHONE_NUMBER }}" >> .env
+          echo "TWILIO_TEMPLATE=${{ secrets.TWILIO_TEMPLATE }}" >> .env
+          echo "TWILIO_ACCOUNT=${{ secrets.TWILIO_ACCOUNT }}" >> .env
           # Adicione outras variáveis necessárias aqui
       
       - name: Run tests
-        run: bun test --env-file .env ./src/**/infra/tests/*.test.ts
+        run: bun test
