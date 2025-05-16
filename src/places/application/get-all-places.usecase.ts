@@ -1,5 +1,5 @@
-import type { IPlaceRepository } from "../place-repository.interface";
-import type { Place } from "../place.type";
+import type { IPlaceRepository } from "../domain/place-repository.interface";
+import type { Place } from "../domain/place.type";
 
 export async function getAllPlacesUseCase(
   placeRepository: IPlaceRepository
