@@ -2,8 +2,8 @@ import { UnauthorizedError } from "@/shared/errors/unauthorized-error";
 import { authMiddleware } from "@/shared/infra/auth.middleware";
 import { repositories } from "@/shared/singleton/repositories";
 import Elysia, { t } from "elysia";
-import { getAllPlacesUseCase } from "../domain/application/get-all-places.usecase";
 import { placeType } from "../domain/place.type";
+import { getAllPlacesUseCase } from "../application/get-all-places.usecase";
 
 export const PlaceController = new Elysia({
   prefix: "/places",
