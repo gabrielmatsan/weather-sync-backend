@@ -1,4 +1,3 @@
-import { getUserFavoritePlaceUseCase } from "@/favorite-places/application/get-user-favorite-place.usecase";
 import { UnauthorizedError } from "@/shared/errors/unauthorized-error";
 import { authMiddleware } from "@/shared/infra/auth.middleware";
 import { repositories } from "@/shared/singleton/repositories";
@@ -62,77 +61,16 @@ export const FavoritePlaceController = new Elysia({
           message: t.String(),
         }),
       },
-    }
-  )
-  .get(
-    "/:userId",
-    async ({ params, set, validateToken }) => {
-      try {
-        const user = await validateToken();
 
-        const userId = params.userId;
-
-        if (!user) {
-          throw new UnauthorizedError();
-        }
-
-        const response = await getUserFavoritePlaceUseCase(
-          { userId },
-          repositories.favoritePlaceRepository
-        );
-
-        set.status = 200;
-        return {
-          status: "success",
-          data: response,
-        };
-      } catch (error) {
-        if (error instanceof UnauthorizedError) {
-          set.status = 401;
-          return {
-            status: "error",
-            message: error.message,
-          };
-        }
-        console.error("GET /FAVORITE-PLACE/:userId => \n", error);
-
-        set.status = 500;
-        return {
-          status: "error",
-          message: "Internal server error",
-        };
-      }
-    },
-    {
-      params: t.Object({
-        userId: t.String(),
-      }),
-
-      response: {
-        200: t.Object({
-          status: t.String(),
-          data: t.Array(
-            t.Object({
-              name: t.String(),
-            })
-          ),
-        }),
-        401: t.Object({
-          status: t.String(),
-          message: t.String(),
-        }),
-        500: t.Object({
-          status: t.String(),
-          message: t.String(),
-        }),
-      },
       detail: {
-        tags: ["Users"],
-        description: "Get all favorite places by userId",
-        summary: "Get all favorite places by userId",
+        summary: "Add a new favorite place",
+        tags: ["Favorite Places"],
+        description:
+          "Add a new favorite place to the user's list of favorite places",
       },
     }
   )
+
   .delete(
     "/:placeId",
     async ({ set, params, validateToken }) => {
@@ -184,6 +122,13 @@ export const FavoritePlaceController = new Elysia({
           status: t.String(),
           message: t.String(),
         }),
+      },
+
+      detail: {
+        tags: ["Favorite Places"],
+        summary: "Remove a favorite place",
+        description:
+          "Remove a favorite place from the user's list of favorite places",
       },
     }
   );
