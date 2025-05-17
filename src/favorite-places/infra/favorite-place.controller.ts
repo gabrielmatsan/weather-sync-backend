@@ -4,6 +4,7 @@ import { repositories } from "@/shared/singleton/repositories";
 import Elysia, { t } from "elysia";
 import { addNewFavoritePlaceUseCase } from "../application/add-new-favorite-place.usecase";
 import { removeFavoritePlace } from "../application/remove-favorite-place.usecase";
+import { getUserRelationsPlacesUseCase } from "../application/user-relations-places.usecase";
 
 export const FavoritePlaceController = new Elysia({
   prefix: "/favorite-places",
@@ -129,6 +130,76 @@ export const FavoritePlaceController = new Elysia({
         summary: "Remove a favorite place",
         description:
           "Remove a favorite place from the user's list of favorite places",
+      },
+    }
+  )
+  .get(
+    "/",
+    async ({ set, validateToken }) => {
+      try {
+        const user = await validateToken();
+
+        if (!user) {
+          throw new UnauthorizedError();
+        }
+
+        const response = await getUserRelationsPlacesUseCase(
+          user.id,
+          repositories.favoritePlaceRepository
+        );
+
+        set.status = 200;
+        return {
+          status: "success",
+          message: "User relations places retrieved successfully",
+          data: response,
+        };
+      } catch (error) {
+        if (error instanceof UnauthorizedError) {
+          set.status = 401;
+          return {
+            status: "error",
+            message: error.message,
+          };
+        }
+        set.status = 500;
+        console.error("Error retrieving user relations places:", error);
+        return {
+          status: "error",
+          message: "Internal server error",
+        };
+      }
+    },
+    {
+      response: {
+        200: t.Object({
+          status: t.String(),
+          message: t.String(),
+          data: t.Object({
+            userRelationsPlaces: t.Array(
+              t.Object({
+                id: t.Number(),
+                name: t.String(),
+                isFavorite: t.Boolean(),
+              })
+            ),
+          }),
+        }),
+        401: t.Object({
+          status: t.String(),
+          message: t.String(),
+        }),
+        500: t.Object({
+          status: t.String(),
+          message: t.String(),
+        }),
+      },
+
+      detail: {
+        tags: ["Favorite Places"],
+        summary: "Get user relations places",
+        description:
+          "Get the user's list of favorite places and their favorite status",
       },
     }
   );
