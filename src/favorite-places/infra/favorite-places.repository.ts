@@ -1,9 +1,10 @@
 import { placesSchema } from "@/places/domain/places.schema";
 import { db } from "@/shared/database/db";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import type {
   FavoritePlaceRecord,
   IFavoritePlaceRepository,
+  PlaceWithFavoriteStatus,
   UsersFavoritePlaces,
 } from "../domain/favorite-place.interface.repository";
 import { favoritePlacesSchema } from "../domain/favorite-places.schema";
@@ -50,6 +51,7 @@ export class FavoritePlacesRepository implements IFavoritePlaceRepository {
   ): Promise<UsersFavoritePlaces[]> {
     return await db
       .select({
+        id: placesSchema.id,
         name: placesSchema.name,
       })
       .from(favoritePlacesSchema)
@@ -79,5 +81,53 @@ export class FavoritePlacesRepository implements IFavoritePlaceRepository {
     }
 
     return removedFavoritePlace;
+  }
+  async getUserNotFavoritedPlaces(
+    userId: string
+  ): Promise<UsersFavoritePlaces[]> {
+    return await db
+      .select({
+        id: placesSchema.id,
+        name: placesSchema.name,
+      })
+      .from(placesSchema)
+      .leftJoin(
+        favoritePlacesSchema,
+        eq(placesSchema.id, favoritePlacesSchema.placeId)
+      )
+      .where(
+        and(
+          eq(favoritePlacesSchema.userId, userId),
+          isNull(favoritePlacesSchema.placeId)
+        )
+      );
+  }
+
+  async getAllPlacesWithFavoriteStatus(
+    userId: string
+  ): Promise<PlaceWithFavoriteStatus[]> {
+    // Busca todos os lugares
+    const places = await db
+      .select({ id: placesSchema.id, name: placesSchema.name })
+      .from(placesSchema);
+
+    console.log("Places: ", places);
+
+    // Busca todos os locais favoritados pelo usuário
+    const userFavoritePlaces = await db
+      .select({ placeId: favoritePlacesSchema.placeId })
+      .from(favoritePlacesSchema)
+      .where(eq(favoritePlacesSchema.userId, userId));
+
+    // Extrai apenas os IDs dos lugares favoritos para melhor performance
+    const favoritePlaceIds = new Set(
+      userFavoritePlaces.map((fp) => fp.placeId)
+    );
+
+    // Mapeia os lugares adicionando a flag isFavorite
+    return places.map((place) => ({
+      ...place,
+      isFavorite: favoritePlaceIds.has(place.id),
+    }));
   }
 }
