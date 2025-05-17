@@ -173,16 +173,15 @@ describe("Send Floor Warning Message UseCase", () => {
     //     .where(eq(usersSchema.email, user2Data.email));
     // }
 
-    // 4. Deletar fonte de dado do banco de dados no final do teste
+    // 4. Deletar o local do banco de dados no final do teste
+    if (place && placeId) {
+      await db.delete(placesSchema).where(eq(placesSchema.id, placeId));
+    }
+    // 5. Deletar fonte de dado do banco de dados no final do teste
     if (dataSource && dataSourceId) {
       await db
         .delete(dataSourceSchema)
         .where(eq(dataSourceSchema.id, dataSourceId));
-    }
-
-    // 5. Deletar o local do banco de dados no final do teste
-    if (place && placeId) {
-      await db.delete(placesSchema).where(eq(placesSchema.id, placeId));
     }
   });
 
