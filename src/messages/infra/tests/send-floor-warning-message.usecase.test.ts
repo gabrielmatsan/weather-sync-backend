@@ -42,13 +42,14 @@ describe("Send Floor Warning Message UseCase", () => {
     app = new Elysia().use(MessageController).use(AuthController);
 
     // 1. Criar um usuário de teste 1 e 2
+    const userPhone = "559188772828";
     let password: string = faker.internet.password();
     let hashedPassword: string = await hashPassword(password);
     userData = {
       name: faker.person.fullName(),
       email: faker.internet.email(),
       password: hashedPassword,
-      phoneNumber: "559188772828", // Número pessoal para testes de recebimento de mensagens
+      phoneNumber: userPhone, // Número pessoal para testes de recebimento de mensagens
       notifications: "yes",
     };
 
@@ -82,7 +83,7 @@ describe("Send Floor Warning Message UseCase", () => {
       })
     );
     tokenData = token.headers.get("set-cookie");
-    console.log("Token: ", tokenData);
+    //console.log("Token: ", tokenData);
 
     if (!tokenData) {
       throw new Error("Token data is null");
@@ -172,61 +173,65 @@ describe("Send Floor Warning Message UseCase", () => {
     //     .where(eq(usersSchema.email, user2Data.email));
     // }
 
-    // 4. Deletar fonte de dado do banco de dados no final do teste
+    // 4. Deletar o local do banco de dados no final do teste
+    if (place && placeId) {
+      await db.delete(placesSchema).where(eq(placesSchema.id, placeId));
+    }
+    // 5. Deletar fonte de dado do banco de dados no final do teste
     if (dataSource && dataSourceId) {
       await db
         .delete(dataSourceSchema)
         .where(eq(dataSourceSchema.id, dataSourceId));
     }
-
-    // 5. Deletar o local do banco de dados no final do teste
-    if (place && placeId) {
-      await db.delete(placesSchema).where(eq(placesSchema.id, placeId));
-    }
   });
 
   it("should send a floor warning message to the user", async () => {
-    if (!tokenData) {
-      throw new Error("Token data is null");
-    }
-
-    const response = await app.handle(
-      new Request("http://localhost:8080/messages/send-floor-warning", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          to: user.phoneNumber,
-          place: place.name,
-          floor: "5",
-        }),
-      })
-    );
-
-    // Debug a resposta
-    console.log("Response status:", response.status);
-
-    // Tentar ler o corpo da resposta
-    const responseText = await response.text();
-    console.log("Response text:", responseText);
-
-    // Se for JSON válido, fazer o parse
-    let responseData;
-    if (responseText) {
-      try {
-        responseData = JSON.parse(responseText);
-        console.log("Response data:", responseData);
-      } catch (e) {
-        console.error("Failed to parse JSON:", e);
-        console.error("Response was:", responseText);
+    try {
+      if (!tokenData) {
+        throw new Error("Token data is null");
       }
-    }
 
-    expect(response.status).toBe(201);
-    if (responseData) {
-      expect(responseData.success).toBe(true);
-      expect(responseData.message).toBe("Message sent successfully");
+      const response = await app.handle(
+        new Request("http://localhost:8080/messages/send-floor-warning", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to: user.phoneNumber,
+            place: place.name,
+            floor: "5",
+          }),
+        })
+      );
+
+      // Debug a resposta
+      console.log("Response status:", response);
+
+      // Tentar ler o corpo da resposta
+      const responseText = await response.text();
+      console.log("Response text:", responseText);
+
+      // Se for JSON válido, fazer o parse
+      let responseData;
+      if (responseText) {
+        try {
+          responseData = JSON.parse(responseText);
+          //console.log("Response data:", responseData);
+        } catch (e) {
+          console.error("Failed to parse JSON:", e);
+          console.error("Response was:", responseText);
+        }
+      }
+
+      expect(response.status).toBe(201);
+      if (responseData) {
+        expect(responseData.success).toBe(true);
+        expect(responseData.message).toBe("Message sent successfully");
+      }
+    } catch (error) {
+      console.error("Error in test:", error);
+      throw error; // Re-throw the error to fail the test
     }
   });
 });

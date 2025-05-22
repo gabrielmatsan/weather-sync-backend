@@ -16,7 +16,6 @@ export async function sendFloorWarningMessageUseCase(
 ) {
   // busca novos dados dos sensores
   const sensorsData = await sensorRepository.getNewSensorsData();
-  console.log("getNewSensorsData result:", sensorsData);
 
   // Verifica se algum dos registros de sensores possui o nível de água acima do nível máximo, se houver, armazena o ID localmente
   const criticalPlaces: CriticalSensorData[] = sensorsData
@@ -26,8 +25,6 @@ export async function sendFloorWarningMessageUseCase(
       waterLevel: sensor.waterLevel,
     }));
 
-  console.log("Critical places:", criticalPlaces);
-  
   // Caso não haja sensores com nível crítico, retorna um objeto indicando que não há alertas a serem enviados
   if (criticalPlaces.length <= 0) {
     console.log("Nenhum sensor ultrapassou o nível crítico de água");

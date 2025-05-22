@@ -1,63 +1,66 @@
+import { UnauthorizedError } from "@/shared/errors/unauthorized-error";
 import { authMiddleware } from "@/shared/infra/auth.middleware";
+import Elysia from "elysia";
+import { userFavoritePlacesUsecase } from "../application/user-favorite-places.usecase";
 import { repositories } from "@/shared/singleton/repositories";
-import Elysia, { t } from "elysia";
-import { addNewFavoritePlaceUseCase } from "../application/add-new-favorite-place.usecase";
+import { FavoritePlacesNotFoundError } from "@/shared/errors/favorite-places-not-found.error";
 
 export const UserController = new Elysia({
-  prefix: "/users",
-  tags: ["Users"],
+    prefix: "/users",
+    tags: ["Users"],
 })
-  .use(authMiddleware)
-  .post(
-    "/favorite-place",
-    async ({ body, set, validateToken }) => {
-      try {
-        const user = await validateToken();
+    .use(authMiddleware)
+    .get(
+        "/favorite-places",
+        async ({ validateToken, set }) => {
+            try {
+                const user = await validateToken();
 
-        if (!user) {
-          set.status = 401;
-          throw new Error("Unauthorized");
-        }
+                if (!user) {
+                    throw new UnauthorizedError();
+                }
 
-        const userId = user.id;
+                const response = await userFavoritePlacesUsecase(
+                    user.id,
+                    repositories.favoritePlaceRepository,
+                );
 
-        const { placeId } = body;
+                set.status = 200;
+                return {
+                    status: "sucess",
+                    message: "get user's favorite places",
+                    response,
+                };
+            } catch (error) {
+                if (error instanceof UnauthorizedError) {
+                    set.status = 401;
+                    return {
+                        status: "error",
+                        message: error.message,
+                    };
+                }
 
-        await addNewFavoritePlaceUseCase(
-          { userId, placeId },
-          repositories.placeRepository,
-          repositories.favoritePlaceRepository
-        );
+                if (error instanceof FavoritePlacesNotFoundError) {
+                    set.status = 404;
+                    return {
+                        status: "error",
+                        message: error.message,
+                    };
+                }
 
-        set.status = 201;
-        return {
-          status: "success",
-          message: "Place added to favorites",
-        };
-      } catch (error) {
-        set.status = 500;
-        console.error("Error adding favorite place:", error);
-
-        return {
-          status: "error",
-          message: "Internal server error",
-        };
-      }
-    },
-    {
-      body: t.Object({
-        placeId: t.Number(),
-      }),
-
-      response: {
-        201: t.Object({
-          status: t.String(),
-          message: t.String(),
-        }),
-        500: t.Object({
-          status: t.String(),
-          message: t.String(),
-        }),
-      },
-    }
-  );
+                set.status = 500;
+                console.error(error);
+                return {
+                    status: "error",
+                    error: "Internal Server Error",
+                };
+            }
+        },
+        {
+            detail: {
+                tags: ["Users"],
+                summary: "Get all user's favorite places",
+                description: "Get all user's favorite places",
+            },
+        },
+    );
