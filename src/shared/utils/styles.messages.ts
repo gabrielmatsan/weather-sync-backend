@@ -1,5 +1,5 @@
-export async function messageFloodWarning(local: string, floor: string) {
-  const FLOOD_MESSAGE_ALERT = `🚨 *ALERTA CRÍTICO* 🚨
+export function messageFloodWarning(local: string, floor: string) {
+    const FLOOD_MESSAGE_ALERT = `🚨 *ALERTA CRÍTICO* 🚨
 
 🌊 *ENCHENTE DETECTADA* 🌊
 
@@ -14,11 +14,11 @@ export async function messageFloodWarning(local: string, floor: string) {
 🆘 *Emergência: 193*
 
 🕐 ${new Date().toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "America/Sao_Paulo",
-  })}
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "America/Sao_Paulo",
+    })}
 🤖 Weather Sync Alert`;
 
-  return FLOOD_MESSAGE_ALERT;
+    return FLOOD_MESSAGE_ALERT;
 }
