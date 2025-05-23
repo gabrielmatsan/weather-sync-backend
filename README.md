@@ -40,7 +40,7 @@ weather-sync/
 ├── public/           # Arquivos estáticos
 ├── src/                                # Código fonte
 │   ├── api/                            # Endpoints da API
-│       ├── module/                     # Componentes reutilizáveis
+│       ├── context/                     # Componentes reutilizáveis
     │       ├── application/            # Componentes
             ├── domain/                 # Páginas da aplicação
     │       └── infrastructure/         # Funções utilitárias
