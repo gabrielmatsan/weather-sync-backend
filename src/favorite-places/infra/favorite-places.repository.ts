@@ -1,6 +1,6 @@
 import { placesSchema } from "@/places/domain/places.schema";
 import { db } from "@/shared/database/db";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import type {
   FavoritePlaceRecord,
   IFavoritePlaceRepository,
