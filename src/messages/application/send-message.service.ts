@@ -1,4 +1,5 @@
 import { env } from "@/shared/env/env";
+import { messageFloodWarning } from "@/shared/utils/styles.messages";
 import twilio from "twilio";
 
 export interface floorWarningMessage {
@@ -16,7 +17,7 @@ export class TwillioWhatsappService {
 
   async sendWhatsAppMessage(to: string, info: floorWarningMessage) {
     try {
-      const message = `ATENÇÃO!!!\n Alerta de enchente - Bairro ${info.place} - Nível da água ${info.floor} metros\n\n`;
+      const message = await messageFloodWarning(info.place, info.floor);
 
       const result = await this.client.messages.create({
         from: `whatsapp:${env.TWILIO_PHONE_NUMBER}`,
