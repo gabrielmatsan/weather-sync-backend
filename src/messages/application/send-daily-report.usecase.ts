@@ -1,7 +1,9 @@
 // sendDailyReport.usecase.ts - TIPAGEM CORRIGIDA
 import type { IFavoritePlaceRepository } from "@/favorite-places/domain/favorite-place.interface.repository";
 import { favoritePlaceType } from "@/favorite-places/domain/favorite-place.type";
+import { generateWeatherPDF } from "@/shared/lib/mail/generate-weather-pdf";
 import { mail } from "@/shared/lib/mail/mail";
+import { generateEmailHTML } from "@/shared/utils/email-message-html";
 import type { IUsersRepository } from "@/users/domain/users-repository.interface";
 import type { IWeatherRepository } from "@/weather/domain/weather-repository.interface";
 import { weatherType } from "@/weather/domain/weather.type";
@@ -126,35 +128,68 @@ export async function sendDailyReport(
     return;
   }
 
-  // ENVIAR EMAILS PARA USUÁRIOS COM DADOS VÁLIDOS
+  // 4️⃣ ENVIAR EMAILS PARA USUÁRIOS
   await Promise.allSettled(
     usersWithValidData.map(async (user) => {
       try {
+        const reportDate = new Date().toLocaleDateString("pt-BR");
         const placesWithData = user.userFavoritePlaces.filter(
           (place) => place.weatherData.length > 0
         );
-        const totalReadings = placesWithData.reduce(
+        const totalReadings = user.userFavoritePlaces.reduce(
           (sum, place) => sum + place.weatherData.length,
           0
         );
 
+        console.log(`📧 Preparando email para ${user.userEmail}...`);
+
         // Gerar HTML do email
-        // const emailHtml = generateEmailHTML(user, placesWithData);
-        // const emailText = generateEmailText(user, placesWithData);
+        const emailHtml = generateEmailHTML(
+          user.userName,
+          user.userFavoritePlaces,
+          reportDate
+        );
+
+        // Preparar anexos
+        const attachments = [];
+
+        // Se houver dados meteorológicos, gerar PDF
+        if (placesWithData.length > 0) {
+          try {
+            console.log(`📄 Gerando PDF para ${user.userEmail}...`);
+            const pdfBuffer = await generateWeatherPDF(
+              user.userName,
+              user.userFavoritePlaces,
+              reportDate
+            );
+
+            attachments.push({
+              filename: `weather-report-${reportDate.replace(/\//g, "-")}.pdf`,
+              content: pdfBuffer,
+              contentType: "application/pdf",
+            });
+            console.log(`✅ PDF gerado com sucesso`);
+          } catch (pdfError) {
+            console.error(`❌ Erro ao gerar PDF:`, pdfError);
+            // Continua o envio sem o PDF
+          }
+        }
 
         // Enviar email
         const sendEmailResult = await mail.sendMail({
           from: { name: "Weather Sync", address: "weather-sync@gmail.com" },
           to: user.userEmail,
-          subject: `🌤️ Relatório dos seus ${placesWithData.length} locais favoritos - ${new Date().toLocaleDateString("pt-BR")}`,
-          text: "testando",
-          // html: emailHtml,
+          subject: `🌤️ Seu Relatório Meteorológico - ${reportDate}`,
+          html: emailHtml,
+          attachments: attachments.length > 0 ? attachments : undefined,
         });
 
         const previewUrl = nodemailer.getTestMessageUrl(sendEmailResult);
 
         console.log(
-          `✅ Email enviado para ${user.userEmail} - ${placesWithData.length} locais, ${totalReadings} leituras`
+          `✅ Email enviado para ${user.userEmail} - ${user.userFavoritePlaces.length} locais, ${totalReadings} leituras${
+            attachments.length > 0 ? " (com PDF)" : " (sem PDF)"
+          }`
         );
         if (previewUrl) {
           console.log(`🔗 Preview: ${previewUrl}`);
