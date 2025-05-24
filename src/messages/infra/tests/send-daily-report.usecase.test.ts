@@ -1,4 +1,5 @@
 import { dataSourceSchema } from "@/data-source/domain/data-source.schema";
+import { favoritePlacesSchema } from "@/favorite-places/domain/favorite-places.schema";
 import { placesSchema } from "@/places/domain/places.schema";
 import { db } from "@/shared/database/db";
 import { usersSchema } from "@/users/domain/users.schema";
@@ -16,10 +17,16 @@ describe("Send Daily Report Use Case", () => {
   let userId: string;
 
   let weather: any;
+  // @ts-expect-error
   let weatherId: number;
 
+  // @ts-expect-error
   let place: any;
   let placeId: number;
+
+  let favoritePlace: any;
+  // @ts-expect-error
+  let favoritePlaceId: number;
 
   let dataSource: any;
   let dataSourceId: number;
@@ -42,7 +49,7 @@ describe("Send Daily Report Use Case", () => {
 
       userId = user.id;
 
-      placeId = 5458;
+      placeId = 5459;
       [place] = await tx
         .insert(placesSchema)
         .values({
@@ -61,6 +68,16 @@ describe("Send Daily Report Use Case", () => {
         })
         .returning();
       dataSourceId = dataSource.id;
+
+      // 3. Create a favorite place
+      [favoritePlace] = await tx
+        .insert(favoritePlacesSchema)
+        .values({
+          userId: userId,
+          placeId: placeId,
+        })
+        .returning();
+      favoritePlaceId = favoritePlace.id;
 
       // 2. Create a weather record
 
@@ -92,6 +109,9 @@ describe("Send Daily Report Use Case", () => {
     await db.delete(weatherSchema);
     console.log("Weather deleted");
     // Clean up the database
+
+    await db.delete(favoritePlacesSchema);
+
     await db.delete(usersSchema).where(eq(usersSchema.id, userId));
     console.log("User deleted");
 
