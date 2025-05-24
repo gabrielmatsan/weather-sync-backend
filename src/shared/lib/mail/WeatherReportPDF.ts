@@ -1,7 +1,6 @@
 import type { FavoritePlaceWithWeatherType } from "@/messages/application/send-daily-report.usecase";
 import puppeteer from "puppeteer";
 
-// Template HTML com gráficos usando Chart.js (mais compatível com geração de PDF)
 const generateHTMLTemplate = (
   userName: string,
   favoritePlaces: FavoritePlaceWithWeatherType[],
@@ -54,7 +53,7 @@ const generateHTMLTemplate = (
   // Gerar dados dos gráficos para cada local
   const chartsData = favoritePlaces.map((place) => {
     const chartData = place.weatherData.map((item) => ({
-      hora: new Date(item.createdAt).getHours(),
+      hora: item.createdAt ? new Date(item.createdAt).getHours() : null,
       temperatura: parseFloat(item.temperature),
       umidade: item.humidity,
       pressao: item.pressure,

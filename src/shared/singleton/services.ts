@@ -1,4 +1,4 @@
-import { TwillioWhatsappService } from "@/messages/application/send-message.service";
+import { TwillioWhatsappService } from "../lib/twilio/twilio";
 
 const twilionWhatsappService = new TwillioWhatsappService();
 

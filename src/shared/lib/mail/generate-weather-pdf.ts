@@ -3,7 +3,7 @@ import puppeteer from "puppeteer";
 import React from "react";
 import WeatherReportPDF from "./WeatherReportPDF";
 
-// Template HTML com gráficos usando Chart.js (mais compatível com geração de PDF)
+
 const generateHTMLTemplate = (
   userName: string,
   favoritePlaces: FavoritePlaceWithWeatherType[],
@@ -529,7 +529,7 @@ export async function generateWeatherPDF(
     });
 
     // Aguardar um pouco para garantir que os gráficos sejam renderizados
-    setTimeout(() => {}, 1000);
+    setTimeout(() => {}, 2000);
 
     // Gerar o PDF
     const pdf = await page.pdf({
@@ -560,12 +560,14 @@ export async function generateSimpleWeatherPDF(
 
   // Importar o renderToBuffer do @react-pdf/renderer
 
+  //@ts-expect-error
   const document = React.createElement(WeatherReportPDF, {
     userName,
     favoritePlaces,
     reportDate,
   });
 
+  //@ts-expect-error
   return await renderToBuffer(document);
 }
 
