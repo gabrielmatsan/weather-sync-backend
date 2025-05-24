@@ -25,4 +25,5 @@ export interface IUsersRepository {
   createUser(params: CreateUserParams): Promise<UserRecord>;
   getUsersToSendMessage(placeId: number): Promise<UserRecord[]>;
   registerUser(data: CreateUserParams): Promise<UserRecord>;
+  getUsersToSendEmail(): Promise<UserRecord[]>;
 }
