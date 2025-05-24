@@ -1,8 +1,9 @@
 import { placesSchema } from "@/places/domain/places.schema";
 import { db } from "@/shared/database/db";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import type {
   FavoritePlaceRecord,
+  FavoritePlaceWithDetails,
   IFavoritePlaceRepository,
   PlaceWithFavoriteStatus,
   UsersFavoritePlaces,
@@ -10,6 +11,9 @@ import type {
 import { favoritePlacesSchema } from "../domain/favorite-places.schema";
 
 export class FavoritePlacesRepository implements IFavoritePlaceRepository {
+  async allFavoritePlaces(): Promise<FavoritePlaceRecord[]> {
+    return await db.select().from(favoritePlacesSchema);
+  }
   async addNewFavoritePlace(
     userId: string,
     placeId: number
@@ -47,6 +51,22 @@ export class FavoritePlacesRepository implements IFavoritePlaceRepository {
   }
 
   async getFavoritePlacesByUserId(
+    userId: string
+  ): Promise<UsersFavoritePlaces[]> {
+    return await db
+      .select({
+        id: placesSchema.id,
+        name: placesSchema.name,
+      })
+      .from(favoritePlacesSchema)
+      .innerJoin(
+        placesSchema,
+        eq(placesSchema.id, favoritePlacesSchema.placeId)
+      )
+      .where(eq(favoritePlacesSchema.userId, userId));
+  }
+
+  async getFavoritePlacesByUserIdCompleteData(
     userId: string
   ): Promise<UsersFavoritePlaces[]> {
     return await db
@@ -129,5 +149,30 @@ export class FavoritePlacesRepository implements IFavoritePlaceRepository {
       ...place,
       isFavorite: favoritePlaceIds.has(place.id),
     }));
+  }
+
+  async getFavoritePlacesByUserIdDetails(
+    userId: string
+  ): Promise<FavoritePlaceWithDetails[]> {
+    return await db
+      .select({
+        id: placesSchema.id,
+        name: placesSchema.name,
+        userId: favoritePlacesSchema.userId,
+        placeId: favoritePlacesSchema.placeId,
+        createdAt: favoritePlacesSchema.createdAt,
+      })
+      .from(favoritePlacesSchema)
+      .innerJoin(
+        placesSchema,
+        eq(placesSchema.id, favoritePlacesSchema.placeId)
+      )
+      .where(eq(favoritePlacesSchema.userId, userId))
+      .then((results) =>
+        results.map((result) => ({
+          ...result,
+          createdAt: result.createdAt ?? new Date(0),
+        }))
+      );
   }
 }

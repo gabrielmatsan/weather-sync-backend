@@ -9,6 +9,12 @@ import type {
 import { usersSchema } from "../domain/users.schema";
 
 export class UsersRepository implements IUsersRepository {
+  async getUsersToSendEmail(): Promise<UserRecord[]> {
+    return await db
+      .select()
+      .from(usersSchema)
+      .where(eq(usersSchema.notifications, "yes"));
+  }
   async registerUser(data: CreateUserParams): Promise<UserRecord> {
     const [user] = await db.insert(usersSchema).values(data).returning();
 

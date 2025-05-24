@@ -20,8 +20,21 @@ export interface IFavoritePlaceRepository {
   getAllPlacesWithFavoriteStatus(
     userId: string
   ): Promise<PlaceWithFavoriteStatus[]>;
+
+  allFavoritePlaces(): Promise<FavoritePlaceRecord[]>;
+
+  getFavoritePlacesByUserIdDetails(
+    userId: string
+  ): Promise<FavoritePlaceWithDetails[]>;
 }
 
+export interface FavoritePlaceWithDetails {
+  id: number;
+  name: string;
+  userId: string;
+  placeId: number;
+  createdAt: Date;
+}
 export interface FavoritePlaceRecord {
   userId: string;
   placeId: number;
@@ -37,7 +50,6 @@ export interface UsersFavoritePlaces {
   id: number;
   name: string;
 }
-
 export interface PlaceWithFavoriteStatus extends UsersFavoritePlaces {
   isFavorite: boolean;
 }

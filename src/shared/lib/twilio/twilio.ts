@@ -7,7 +7,6 @@ export interface floorWarningMessage {
   floor: string;
 }
 
-// Correção 2: Adicionar o prefixo whatsapp: ao número de origem
 export class TwillioWhatsappService {
   private client: twilio.Twilio;
 
@@ -17,7 +16,7 @@ export class TwillioWhatsappService {
 
   async sendWhatsAppMessage(to: string, info: floorWarningMessage) {
     try {
-      const message = await messageFloodWarning(info.place, info.floor);
+      const message = messageFloodWarning(info.place, info.floor);
 
       const result = await this.client.messages.create({
         from: `whatsapp:${env.TWILIO_PHONE_NUMBER}`,
