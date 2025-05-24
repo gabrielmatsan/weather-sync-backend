@@ -14,10 +14,10 @@ export const MessageController = new Elysia({
     try {
       await sendDailyReport(
         repositories.userRepository,
-        repositories.weatherRepository
+        repositories.weatherRepository,
+        repositories.favoritePlaceRepository
       );
 
-      
       set.status = 201;
       return {
         success: true,
